@@ -3,20 +3,17 @@ const { MongoClient } = require("mongodb")
 const app = express()
 const PORT = 8000
 app.use(express.json())
+const mongoose = require("mongoose")
+app.use(express.json())
+const userModel = require("./userModel")
 
-const client = new MongoClient ("mongodb+srv://zolbootulgaa1928:GZTe9utxieEM84wv@clusterofzolboo.v6qau.mongodb.net/?retryWrites=true&w=majority&appName=clusterOfZolboo");
-
-let db;
-const connectTodb =  ()=>{
-    try {
-         client.connect()
-         db = client.db("sample_mflix");
-        console.log("successfully connected")
-    } catch (error) {
-        console.log(error, "failed to connect")
-    }
+const connectTomongoose = async()=>{
+    const res = await mongoose.connect(
+      "mongodb+srv://zolbootulgaa1928:GZTe9utxieEM84wv@clusterofzolboo.v6qau.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=clusterOfZolboo"
+    );
+    if(res) console.log("connected to mongoose")
 }
-connectTodb()
+connectTomongoose()
 
 app.get("/users", async(req,res)=>{
    try {
@@ -28,13 +25,34 @@ app.get("/users", async(req,res)=>{
    }
 })
 
-app.post("/users", async(req,res)=>{
+app.post("/post", async(req,res)=>{
     try {
-        const body = req.body
-        const user = await db.collection("users").insertOne(body)
-        res.send(user)
+        const response  = await  userModel.create(req.body)
+        res.send(response)
     } catch (error) {
         res.send(`error:${error}`)
+    }
+})
+
+
+app.put('/update',async(req,res)=>{
+    try {
+        const email = req.body.email
+        const name = req.body.name
+        const response = await userModel.findOneAndUpdate({email},{name},{new:true})
+        res.send(response)
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+app.delete("/delete",async(req,res)=>{
+    try {
+        const response = await userModel.findOneAndDelete({email: req.body.email})
+        res.send(response)
+    } catch (error) {
+        console.log(error)
     }
 })
 
